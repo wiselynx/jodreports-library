@@ -23,11 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jodreports.templates.DocumentTemplateException;
-import org.jodreports.templates.xmlfilters.tags.InsertAfterTag;
-import org.jodreports.templates.xmlfilters.tags.InsertAroundTag;
-import org.jodreports.templates.xmlfilters.tags.InsertBeforeTag;
-import org.jodreports.templates.xmlfilters.tags.JooScriptTag;
 import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -36,6 +31,12 @@ import nu.xom.Elements;
 import nu.xom.Nodes;
 import nu.xom.ParentNode;
 
+import org.jodreports.templates.DocumentTemplateException;
+import org.jodreports.templates.xmlfilters.tags.IncludeTag;
+import org.jodreports.templates.xmlfilters.tags.InsertAfterTag;
+import org.jodreports.templates.xmlfilters.tags.InsertAroundTag;
+import org.jodreports.templates.xmlfilters.tags.InsertBeforeTag;
+import org.jodreports.templates.xmlfilters.tags.JooScriptTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,45 +50,44 @@ public class ScriptTagFilter extends XmlEntryFilter {
 
   private static final Logger log = LoggerFactory.getLogger(ScriptTagFilter.class);
 
-  private final Map<String, JooScriptTag> tags;
+  private final Map/*<String, JooScriptTag>*/ tags;
 
   public ScriptTagFilter() {
-    tags = new HashMap<String, JooScriptTag>();
+    tags = new HashMap();
     tags.put("insert-after", new InsertAfterTag());
     tags.put("insert-around", new InsertAroundTag());
     tags.put("insert-before", new InsertBeforeTag());
+    tags.put("include", new IncludeTag());
   }
 
   public void doFilter(Document document) throws DocumentTemplateException {
     // bloody xpath... no easier way to do a case-insentive match than translate()
     Nodes scriptNodes = document.query("//text:script[translate(@script:language, 'CIJOPRST', 'cijoprst')='jooscript']", XPATH_CONTEXT);
-    for (int nodeIndex = 0; nodeIndex < scriptNodes.size(); nodeIndex++) {
-      Element scriptElement = (Element) scriptNodes.get(nodeIndex);
-      if (scriptElement.getValue().toLowerCase().startsWith("<jooscript>")) {
-        Elements scriptTags = parseScriptText(scriptElement.getValue());
-        for (int tagIndex = 0; tagIndex < scriptTags.size(); tagIndex++) {
-          Element tagElement = scriptTags.get(tagIndex);
-          String tagName = tagElement.getLocalName();
-          if (tags.containsKey(tagName)) {
-            JooScriptTag tag = tags.get(tagName);
-            tag.process(scriptElement, tagElement);
-          }
-          else {
-            log.error("unknown script tag: " + tagName + "; ignoring");
-          }
-        }
-        scriptElement.detach();
-      }
-      else {
-        try {
-          String script = addScriptDirectives(scriptElement);
-          scriptElement.getParent().replaceChild(scriptElement, newNode(script));
-        }
-        catch (IOException ioException) {
-          log.error("unable to parse script: '" + scriptElement.getValue() + "'; ignoring", ioException);
+    while (scriptNodes.size() > 0) {
+      for (int nodeIndex = 0; nodeIndex < scriptNodes.size(); nodeIndex++) {
+        Element scriptElement = (Element) scriptNodes.get(nodeIndex);
+        if (scriptElement.getValue().toLowerCase().startsWith("<jooscript>")) {
+          Elements scriptTags = parseScriptText(scriptElement.getValue());
+          manageScriptTags(scriptElement, scriptTags);
           scriptElement.detach();
         }
+        else if (scriptElement.getChildElements("jooscript").size() > 0) {
+          Elements scriptTags = scriptElement.getFirstChildElement("jooscript").getChildElements();
+          manageScriptTags(scriptElement, scriptTags);
+          scriptElement.detach();
+        }
+        else {
+          try {
+            String script = addScriptDirectives(scriptElement);
+            scriptElement.getParent().replaceChild(scriptElement, newNode(script));
+          }
+          catch (IOException ioException) {
+            log.error("unable to parse script: '" + scriptElement.getValue() + "'; ignoring", ioException);
+            scriptElement.detach();
+          }
+        }
       }
+      scriptNodes = document.query("//text:script[translate(@script:language, 'CIJOPRST', 'cijoprst')='jooscript']", XPATH_CONTEXT);
     }
   }
 
@@ -104,6 +104,20 @@ public class ScriptTagFilter extends XmlEntryFilter {
     }
     reader.close();
     return document.getRootElement().getChildElements();
+  }
+  
+  private void manageScriptTags(Element scriptElement, Elements scriptTags) {
+    for (int tagIndex = 0; tagIndex < scriptTags.size(); tagIndex++) {
+      Element tagElement = scriptTags.get(tagIndex);
+      String tagName = tagElement.getLocalName();
+      if (tags.containsKey(tagName)) {
+        JooScriptTag tag = (JooScriptTag) tags.get(tagName);
+        tag.process(scriptElement, tagElement);
+      } 
+      else {
+        log.error("unknown script tag: " + tagName + "; ignoring");
+      }
+    }
   }
 
   private static class ScriptPart {

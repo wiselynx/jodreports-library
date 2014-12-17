@@ -44,8 +44,11 @@ public abstract class AbstractDocumentTemplate implements DocumentTemplate {
 	};
 
 	private static final XmlEntryFilter[] DEFAULT_XML_ENTRY_FILTERS = new XmlEntryFilter[] {
-		new TextInputTagFilter(),
+		/* XXX it's important that ScriptTagFilter is the first element,
+		 * otherwise tags contained in fragments included via the include 
+		 * tag are not processed */
 		new ScriptTagFilter(),
+		new TextInputTagFilter(),
 		new DynamicImageFilter()
 	};
 	

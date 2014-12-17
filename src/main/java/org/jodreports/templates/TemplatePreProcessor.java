@@ -34,7 +34,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 class TemplatePreProcessor {
 
-	private static final String UTF_8 = "UTF-8";
+	public static final String UTF_8 = "UTF-8";
 
 	private String[] xmlEntries;
 	private XmlEntryFilter[] xmlEntryFilters;
@@ -74,7 +74,8 @@ class TemplatePreProcessor {
 //	}
 
 	private void applyXmlFilters(InputStream input, OutputStream output) throws DocumentTemplateException, IOException {
-		Builder builder = new Builder();
+		/* needs to be InjectableFactory to permit include of xml fragments not */
+		Builder builder = new Builder(new InjectableFactory());
 		Document document = null;
 		try {
 			document = builder.build(input);

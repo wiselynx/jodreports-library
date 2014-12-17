@@ -47,7 +47,14 @@ public class DynamicImageFilter extends XmlEntryFilter {
 					frameName.toLowerCase().startsWith(IMAGE_NAME_PREFIX) && 
 					frameName.endsWith(IMAGE_NAME_SUFFIX)) {
 				Attribute hrefAttribute = imageElement.getAttribute("href", OpenDocumentNamespaces.URI_XLINK);
-				String defaultImageName = hrefAttribute.getValue();
+				String defaultImageName = (hrefAttribute != null) ? hrefAttribute.getValue() : "";
+				if (hrefAttribute == null) {
+					hrefAttribute = new Attribute("xlink:href", OpenDocumentNamespaces.URI_XLINK, "");
+					imageElement.addAttribute(hrefAttribute);
+					imageElement.addAttribute(new Attribute("xlink:type", OpenDocumentNamespaces.URI_XLINK, "simple"));
+					imageElement.addAttribute(new Attribute("xlink:show", OpenDocumentNamespaces.URI_XLINK, "embed"));
+					imageElement.addAttribute(new Attribute("xlink:actuate", OpenDocumentNamespaces.URI_XLINK, "onLoad"));
+				}
 				if (frameName.contains(",")) {
 					Attribute widthAttribute = frameElement.getAttribute("width", OpenDocumentNamespaces.URI_SVG);
 					Attribute heightAttribute = frameElement.getAttribute("height", OpenDocumentNamespaces.URI_SVG);

@@ -1,7 +1,10 @@
 package org.jodreports.templates;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -38,7 +41,7 @@ public class DocumentTemplateFactory {
 		return freemarkerConfiguration;
 	}
 
-	public DocumentTemplate getTemplate(File file) throws IOException {
+	public DocumentTemplate getTemplate(File file) throws IOException, DocumentTemplateException {
 		if (file.isDirectory()) {
 			return new UnzippedDocumentTemplate(file, freemarkerConfiguration);
 		} else {
@@ -46,8 +49,33 @@ public class DocumentTemplateFactory {
 		}
 	}
 
-	public DocumentTemplate getTemplate(InputStream inputStream) throws IOException {
-		return new ZippedDocumentTemplate(inputStream, freemarkerConfiguration);
+	public DocumentTemplate getTemplate(InputStream inputStream) throws IOException, DocumentTemplateException {
+		InputStream inputStreamCopy = copyInputStream(inputStream);
+		if (isXmlFile(inputStreamCopy)) {
+			return new FlatDocumentTemplate(inputStreamCopy, freemarkerConfiguration);
+		} else {
+			return new ZippedDocumentTemplate(inputStreamCopy, freemarkerConfiguration);
+		}
+	}
+	
+	private InputStream copyInputStream(final InputStream input) throws FileNotFoundException, IOException {
+		ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+		
+		byte[] buffer = new byte[1024];
+		int len;
+		while ((len = input.read(buffer)) > -1 ) {
+		    bufferStream.write(buffer, 0, len);
+		}
+		bufferStream.flush();
+		
+		return new ByteArrayInputStream(bufferStream.toByteArray());
+	}
+	
+	private boolean isXmlFile(final InputStream inputStream) throws FileNotFoundException, IOException {
+		byte[] firstBytes = new byte[5];
+		inputStream.read(firstBytes);
+		inputStream.reset();
+		return new String(firstBytes).startsWith("<?xml");
 	}
 
 }

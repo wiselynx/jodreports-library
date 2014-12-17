@@ -4,6 +4,7 @@ import nu.xom.XPathContext;
 
 public abstract class OpenDocumentNamespaces {
 
+	public static final String URI_OFFICE 	= "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
 	public static final String URI_DRAW 	= "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0";
 	public static final String URI_MANIFEST = "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0";
 	public static final String URI_CONFIG 	= "urn:oasis:names:tc:opendocument:xmlns:config:1.0";
@@ -15,6 +16,7 @@ public abstract class OpenDocumentNamespaces {
 
 	public static final XPathContext XPATH_CONTEXT = new XPathContext();
 	static {
+		XPATH_CONTEXT.addNamespace("office", URI_OFFICE);
 		XPATH_CONTEXT.addNamespace("draw", URI_DRAW);
 		XPATH_CONTEXT.addNamespace("manifest", URI_MANIFEST);
 		XPATH_CONTEXT.addNamespace("config", URI_CONFIG);
