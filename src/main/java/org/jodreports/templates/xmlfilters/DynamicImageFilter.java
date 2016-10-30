@@ -62,13 +62,16 @@ public class DynamicImageFilter extends XmlEntryFilter {
 											heightAttribute.getValue().trim() + "',";
 					String sizeParameters = frameName.replaceFirst(",", maxSize);
 					widthAttribute.setValue("${" + sizeParameters.replace(IMAGE_NAME_PREFIX, 
-							IMAGE_WIDTH_PREFIX+"'"+defaultImageName+"',") + "}");
+							IMAGE_WIDTH_PREFIX + "'" + defaultImageName + "',") + "}");
 					heightAttribute.setValue("${" + sizeParameters.replace(IMAGE_NAME_PREFIX, 
-							IMAGE_HEIGHT_PREFIX+"'"+defaultImageName+"',") + "}");
+							IMAGE_HEIGHT_PREFIX + "'" + defaultImageName + "',") + "}");
 					frameName = frameName.split(",")[0] + IMAGE_NAME_SUFFIX;
 				}
-				hrefAttribute.setValue("${" + frameName.replace(IMAGE_NAME_PREFIX, 
-						IMAGE_NAME_PREFIX+"'"+defaultImageName+"',") + "}");
+				String imageNameVariable = "${" 
+						+ frameName.replace(IMAGE_NAME_PREFIX, IMAGE_NAME_PREFIX + "'" + defaultImageName + "',") 
+						+ "}";
+				hrefAttribute.setValue(imageNameVariable);
+				frameElement.getAttribute("name", OpenDocumentNamespaces.URI_DRAW).setValue(imageNameVariable);
 			}
 		}
 	}
