@@ -71,6 +71,7 @@ public class IncludeTag implements JooScriptTag {
 						br = new BufferedReader(new InputStreamReader(includeInput));
 						while ((line = br.readLine()) != null) {
 							sb.append(line);
+							sb.append('\n');
 						}			 
 					} finally {
 						if (br != null) {
