@@ -1,5 +1,7 @@
 package org.jodreports.opendocument;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,8 +17,27 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class OpenDocumentIO {
 	
@@ -88,10 +109,61 @@ public class OpenDocumentIO {
 		}
 		zipOutputStream.close();
 	}
+	
+	private static InputStream removeEmptyTextNodes(InputStream inStream) throws IOException {
+		byte[] output = null;
+		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		try {
+			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			Document document = documentBuilder.parse(inStream);
+			XPathFactory xpathFactory = XPathFactory.newInstance();
+			XPathExpression xpathExp = xpathFactory.newXPath().compile(
+			        "//text()[normalize-space(.) = '']");  
+			NodeList emptyTextNodes = (NodeList) 
+			        xpathExp.evaluate(document, XPathConstants.NODESET);
+	
+			for (int i = 0; i < emptyTextNodes.getLength(); i++) {
+			    Node emptyTextNode = emptyTextNodes.item(i);
+			    emptyTextNode.getParentNode().removeChild(emptyTextNode);
+			}
+			
+			Transformer tr = TransformerFactory.newInstance().newTransformer();
+	        tr.setOutputProperty(OutputKeys.INDENT, "no");
+	        tr.setOutputProperty(OutputKeys.METHOD, "xml");
+	        tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+//	        tr.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "roles.dtd");
+	        tr.transform(new DOMSource(document), new StreamResult(outStream));
+			
+			output = outStream.toByteArray();
+
+		} catch (ParserConfigurationException e) {
+			throw new IOException("error removing empty text nodes: " + e, e);
+		} catch (SAXException e) {
+			throw new IOException("error removing empty text nodes: " + e, e);
+		} catch (IOException e) {
+			throw new IOException("error removing empty text nodes: " + e, e);
+		} catch (XPathExpressionException e) {
+			throw new IOException("error removing empty text nodes: " + e, e);
+		} catch (TransformerConfigurationException e) {
+			throw new IOException("error removing empty text nodes: " + e, e);
+		} catch (TransformerFactoryConfigurationError e) {
+			throw new IOException("error removing empty text nodes: " + e, e);
+		} catch (TransformerException e) {
+			throw new IOException("error removing empty text nodes: " + e, e);
+		}
+		return new ByteArrayInputStream(output);
+	}
 
 	private static void writeZipEntry(ZipOutputStream zipOutputStream, OpenDocumentArchive archive, String entryName, int method) throws IOException {
 		ZipEntry zipEntry = new ZipEntry(entryName);
 		InputStream entryInputStream = archive.getEntryInputStream(entryName);
+		if (OpenDocumentArchive.ENTRY_CONTENT.equals(entryName)
+			|| OpenDocumentArchive.ENTRY_META.equals(entryName)
+			|| OpenDocumentArchive.ENTRY_SETTINGS.equals(entryName)
+			|| OpenDocumentArchive.ENTRY_STYLES.equals(entryName)) {
+			entryInputStream = removeEmptyTextNodes(archive.getEntryInputStream(entryName));
+		}
 		zipEntry.setMethod(method);
 		if (method == ZipEntry.STORED) {
 			byte[] inputBytes = IOUtils.toByteArray(entryInputStream);
