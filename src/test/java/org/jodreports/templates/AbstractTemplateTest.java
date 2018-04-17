@@ -12,7 +12,7 @@ import org.xml.sax.SAXException;
 
 public abstract class AbstractTemplateTest extends TestCase {
 
-	private DocumentTemplateFactory documentTemplateFactory;
+	protected DocumentTemplateFactory documentTemplateFactory;
 
 	protected void setUp() throws Exception {
 		documentTemplateFactory = new DocumentTemplateFactory();

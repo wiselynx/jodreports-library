@@ -27,6 +27,7 @@ import org.jodreports.templates.xmlfilters.DynamicImageFilter;
 import org.jodreports.templates.xmlfilters.ScriptTagFilter;
 import org.jodreports.templates.xmlfilters.TextInputTagFilter;
 import org.jodreports.templates.xmlfilters.XmlEntryFilter;
+
 import freemarker.template.Configuration;
 
 public abstract class AbstractDocumentTemplate implements DocumentTemplate {
@@ -85,13 +86,11 @@ public abstract class AbstractDocumentTemplate implements DocumentTemplate {
 		this.contentWrapper = contentWrapper;
 	}
 
-    protected abstract OpenDocumentArchive getOpenDocumentArchive();
-
 	public void setOpenDocumentSettings(Map openDocumentSettings) {
 		this.openDocumentSettings = openDocumentSettings;
 	}
 
-    public void createDocument(Object model, OutputStream output) throws IOException, DocumentTemplateException {
+	protected OpenDocumentArchive processDocument(Object model) throws IOException, DocumentTemplateException {
     	if (preProcessedTemplate == null) {
     		preProcess();
     	}
@@ -99,7 +98,11 @@ public abstract class AbstractDocumentTemplate implements DocumentTemplate {
     	TemplateAndModelMerger templateAndModelMerger = new TemplateAndModelMerger(freemarkerConfiguration, xmlEntries, 
     			openDocumentSettings, configurations);
     	templateAndModelMerger.process(outputArchive, model);
-    	
+    	return outputArchive;
+	}
+	
+    public void createDocument(Object model, OutputStream output) throws IOException, DocumentTemplateException {
+    	OpenDocumentArchive outputArchive = processDocument(model);
     	OpenDocumentIO.writeZip(outputArchive, output);
     }
 

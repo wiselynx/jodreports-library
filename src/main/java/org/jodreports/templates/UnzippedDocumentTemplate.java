@@ -48,7 +48,7 @@ public class UnzippedDocumentTemplate extends AbstractDocumentTemplate {
         archive = OpenDocumentIO.readDirectory(directory);
     }
 
-    protected OpenDocumentArchive getOpenDocumentArchive() {
+    public OpenDocumentArchive getOpenDocumentArchive() {
     	return archive;
     }
 }

@@ -54,7 +54,7 @@ public class ZippedDocumentTemplate extends AbstractDocumentTemplate {
     	archive = OpenDocumentIO.readZip(inputStream);
     }
 
-    protected OpenDocumentArchive getOpenDocumentArchive() {
+    public OpenDocumentArchive getOpenDocumentArchive() {
     	return archive;
     }
 }

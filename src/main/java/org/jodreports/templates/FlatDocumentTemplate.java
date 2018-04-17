@@ -25,6 +25,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.jodreports.opendocument.OpenDocumentArchive;
+import org.jodreports.opendocument.OpenDocumentNamespaces;
+
+import freemarker.template.Configuration;
 import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -33,11 +37,6 @@ import nu.xom.Node;
 import nu.xom.Nodes;
 import nu.xom.ParsingException;
 import nu.xom.Serializer;
-
-import org.jodreports.opendocument.OpenDocumentArchive;
-import org.jodreports.opendocument.OpenDocumentNamespaces;
-
-import freemarker.template.Configuration;
 
 public class FlatDocumentTemplate extends AbstractDocumentTemplate {
 
@@ -54,7 +53,14 @@ public class FlatDocumentTemplate extends AbstractDocumentTemplate {
 		super(freemarkerConfiguration);
 		archive = readXml(new FileInputStream(xml));
 	}
+	
+	public FlatDocumentTemplate(OpenDocumentArchive archive, Configuration freemarkerConfiguration) 
+	throws IOException, DocumentTemplateException {
+		super(freemarkerConfiguration);
+		this.archive = archive;
+	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private OpenDocumentArchive readXml(final InputStream inputStream) 
 	throws IOException, DocumentTemplateException {
 		archive = new OpenDocumentArchive();
@@ -163,7 +169,7 @@ public class FlatDocumentTemplate extends AbstractDocumentTemplate {
 		serializer.write(doc);
 		OutputStream outputStream = archive.getEntryOutputStream(entryName);
 		outputStream.write(byteArrayOutputStream.toByteArray());
-		outputStream.close();	
+		outputStream.close();
 	}
 	
 	private Element addManifestElement(final String fullPath, final String mediaType) {
@@ -173,8 +179,64 @@ public class FlatDocumentTemplate extends AbstractDocumentTemplate {
 		return newElement;
 	}
 
-    protected OpenDocumentArchive getOpenDocumentArchive() {
+    public OpenDocumentArchive getOpenDocumentArchive() {
     	return archive;
+    }
+    
+	private Node dumpEntry(final OpenDocumentArchive outputArchive, final String entryName) 
+	throws IOException, DocumentTemplateException {
+		InputStream in = outputArchive.getEntryInputStream(entryName);
+		Node dump = null;
+		try {
+			Document document = new Builder().build(in);
+			dump = document.getRootElement();
+		} catch (Exception e) {
+			throw new DocumentTemplateException(e);
+		} finally {
+			in.close();
+		}
+		return dump.copy();
+	}
+	
+    public void createDocument(Object model, OutputStream output) throws IOException, DocumentTemplateException {
+    	OpenDocumentArchive outputArchive = processDocument(model);
+    	
+    	Element root = new Element("office:document", OpenDocumentNamespaces.URI_OFFICE);
+    	
+    	ByteArrayOutputStream result = new ByteArrayOutputStream();
+    	byte[] buffer = new byte[1024];
+    	int length;
+    	InputStream in = outputArchive.getEntryInputStream(OpenDocumentArchive.ENTRY_MIMETYPE);
+    	while ((length = in.read(buffer)) != -1) {
+    	    result.write(buffer, 0, length);
+    	}
+    	in.close();
+    	String mimeType = result.toString("UTF-8");
+    	root.addAttribute(new Attribute("office:mimetype", OpenDocumentNamespaces.URI_OFFICE, mimeType));
+    	
+    	Element meta = new Element("office:meta", OpenDocumentNamespaces.URI_OFFICE);
+    	meta.appendChild(dumpEntry(outputArchive, OpenDocumentArchive.ENTRY_META));
+    	root.appendChild(meta);
+    	
+    	Element settings = new Element("office:settings", OpenDocumentNamespaces.URI_OFFICE);
+    	settings.appendChild(dumpEntry(outputArchive, OpenDocumentArchive.ENTRY_SETTINGS));
+    	root.appendChild(settings);
+    	
+    	Element styles = new Element("office:styles", OpenDocumentNamespaces.URI_OFFICE);
+    	styles.appendChild(dumpEntry(outputArchive, OpenDocumentArchive.ENTRY_STYLES));
+    	root.appendChild(styles);
+    	
+    	Element content = new Element("office:scripts", OpenDocumentNamespaces.URI_OFFICE);
+    	content.appendChild(dumpEntry(outputArchive, OpenDocumentArchive.ENTRY_CONTENT));
+    	root.appendChild(content);
+//    	
+//    	Element manifest = new Element("manifest:manifest", OpenDocumentNamespaces.URI_MANIFEST);
+//    	manifest.appendChild(dumpEntry(outputArchive, OpenDocumentArchive.ENTRY_MANIFEST));
+//    	root.appendChild(manifest);
+    	
+    	Document doc = new Document(root);
+    	Serializer serializer = new Serializer(output, TemplatePreProcessor.UTF_8);
+		serializer.write(doc);
     }
     
 }

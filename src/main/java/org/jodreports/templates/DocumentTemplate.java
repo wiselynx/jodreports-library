@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
+import org.jodreports.opendocument.OpenDocumentArchive;
 import org.jodreports.templates.xmlfilters.XmlEntryFilter;
 
 public interface DocumentTemplate {
@@ -81,5 +82,7 @@ public interface DocumentTemplate {
      * @throws DocumentTemplateException
      */
     public void createDocument(Object model, OutputStream output) throws IOException, DocumentTemplateException;
+    
+    public OpenDocumentArchive getOpenDocumentArchive();
 
 }
