@@ -25,5 +25,13 @@ public class RenderedImageSource implements ImageSource {
 	public int getHeight(){
 		return image.getHeight();
 	}
+	
+	public String getFileExtension() {
+		return "png";
+	}
+	
+	public String getMimeType() {
+		return "image/png";
+	}
 
 }

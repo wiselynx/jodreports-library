@@ -35,5 +35,13 @@ public abstract class AbstractInputStreamImageSource implements ImageSource {
 		} catch (IOException e) {}
 		return 0;
 	}
+	
+	public String getFileExtension() {
+		return "png";
+	}
+	
+	public String getMimeType() {
+		return "image/png";
+	}
 
 }

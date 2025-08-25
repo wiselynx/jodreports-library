@@ -25,7 +25,7 @@ public abstract class AbstractTemplateTest extends TestCase {
 
     protected static File createTempFile(String extension) throws IOException {
         File tempFile = File.createTempFile("document", "."+ extension);
-//        tempFile.deleteOnExit();
+        tempFile.deleteOnExit();
         System.out.println(tempFile.getAbsolutePath());
         return tempFile;
     }

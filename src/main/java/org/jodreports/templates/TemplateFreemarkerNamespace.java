@@ -48,7 +48,7 @@ public class TemplateFreemarkerNamespace {
 			return (String) images.get(imageWriter);
 		} else {
 			++imageIndex;
-			String imageHref = "Pictures/dynamic-image-" + imageIndex + ".png";
+			String imageHref = "Pictures/dynamic-image-" + imageIndex + "." + imageWriter.getFileExtension();
 			images.put(imageWriter, imageHref);
 			return imageHref;
 		}

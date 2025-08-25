@@ -13,6 +13,7 @@ import org.jodreports.templates.image.ClasspathImageSource;
 import org.jodreports.templates.image.FileImageSource;
 import org.jodreports.templates.image.ImageSource;
 import org.jodreports.templates.image.RenderedImageSource;
+import org.jodreports.templates.image.VectorImageSource;
 
 public class DynamicImagesTest extends AbstractTemplateTest {
 
@@ -22,6 +23,7 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 		ImageSource red = new RenderedImageSource(ImageIO.read(new File("src/test/resources/red.png")));
 		ImageSource blue = new FileImageSource("src/test/resources/blue.png");
 		ImageSource blue2 = new ClasspathImageSource("blue.png");
+		ImageSource green = new VectorImageSource(DocumentTestUtils.readBytes(new File("src/test/resources/green.svg")));
 		
 		Map model = new HashMap();
 		List items = new ArrayList();
@@ -45,6 +47,11 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 		item4.put("quantity", "20");
 		item4.put("picture", blue2);
 		items.add(item4);
+		Map item5 = new HashMap();
+		item5.put("description", "Fifth Item");
+		item5.put("quantity", "37");
+		item5.put("picture", green);
+		items.add(item5);
 		model.put("items", items);
 		
 		String content = processTemplate(templateFile, model);
@@ -66,7 +73,10 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 			"50\n" +
 			"[frame:1.409cm,0.706cm][img:Pictures/dynamic-image-3.png]\n" +
 			"Fourth Item\n" +
-			"20";			
+			"20\n" +
+			"[frame:1.409cm,0.706cm][img:Pictures/dynamic-image-4.svg]\n" +
+			"Fifth Item\n" +
+			"37";			
 		assertEquals("incorrect output", expected, content);		
 	}
 
@@ -76,6 +86,7 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 		ImageSource red = new RenderedImageSource(ImageIO.read(new File("src/test/resources/red.png")));
 		ImageSource blue = new FileImageSource("src/test/resources/blue.png");
 		ImageSource blue2 = new ClasspathImageSource("blue.png");
+		ImageSource green = new VectorImageSource(DocumentTestUtils.readBytes(new File("src/test/resources/green.svg")));
 		
 		Map model = new HashMap();
 		List items = new ArrayList();
@@ -99,6 +110,11 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 		item4.put("quantity", "20");
 		item4.put("picture", blue2);
 		items.add(item4);
+		Map item5 = new HashMap();
+		item5.put("description", "Fifth Item");
+		item5.put("quantity", "37");
+		item5.put("picture", green);
+		items.add(item5);
 		model.put("items", items);
 		
 		String content = processTemplate(templateFile, model);
@@ -120,7 +136,10 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 			"50\n" +
 			"[frame:1.409cm,0.706cm][img:Pictures/dynamic-image-3.png]\n" +
 			"Fourth Item\n" +
-			"20";			
+			"20\n" +
+			"[frame:1.409cm,0.706cm][img:Pictures/dynamic-image-4.svg]\n" +
+			"Fifth Item\n" +
+			"37";			
 		assertEquals("incorrect output", expected, content);		
 	}
 	
@@ -182,6 +201,7 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 		ImageSource red = new RenderedImageSource(ImageIO.read(new File("src/test/resources/red.png")));
 		ImageSource blue = new FileImageSource("src/test/resources/blue.png");
 		ImageSource blue2 = new ClasspathImageSource("blue.png");
+		ImageSource green = new VectorImageSource(DocumentTestUtils.readBytes(new File("src/test/resources/green.svg")));
 
 		Map model = new HashMap();
 		List items = new ArrayList();
@@ -205,6 +225,11 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 		item4.put("quantity", "20");
 		item4.put("picture", blue2);
 		items.add(item4);
+		Map item5 = new HashMap();
+		item5.put("description", "Fifth Item");
+		item5.put("quantity", "37");
+		item5.put("picture", green);
+		items.add(item5);
 		model.put("items", items);
 		
 		String content = processTemplate(templateFile, model);
@@ -226,7 +251,10 @@ public class DynamicImagesTest extends AbstractTemplateTest {
 			"50\n" +
 			"[frame:8.999cm,4.5cm][img:Pictures/dynamic-image-3.png]\n" +
 			"Fourth Item\n" +
-			"20";			
+			"20\n" +
+			"[frame:8.999cm,4.5cm][img:Pictures/dynamic-image-4.svg]\n" +
+			"Fifth Item\n" +
+			"37";			
 		assertEquals("incorrect output", expected, content);		
 	}
 	

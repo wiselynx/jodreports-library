@@ -8,4 +8,8 @@ public interface ImageSource {
 	public void write(OutputStream outputStream) throws IOException;
 	public int getWidth();
 	public int getHeight();
+	
+	public String getFileExtension();
+	public String getMimeType();
+	
 }

@@ -104,7 +104,7 @@ public class InjectableElement extends Element {
 
 	}
 
-	public Node copy() {
+	public Element copy() {
 		return new InjectableElement(this);
 	}
 

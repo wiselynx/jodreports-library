@@ -101,7 +101,7 @@ class TemplateAndModelMerger {
 			OutputStream imageOutputStream = archive.getEntryOutputStream(imageHref);
 			imageWriter.write(imageOutputStream);
 			IOUtils.closeQuietly(imageOutputStream);
-			manifest.addFileEntry("image/png", imageHref);
+			manifest.addFileEntry(imageWriter.getMimeType(), imageHref);
 		}
 
 		OutputStream outputStream = archive.getEntryOutputStream(OpenDocumentArchive.ENTRY_MANIFEST);

@@ -15,11 +15,14 @@
 //
 package org.jodreports.templates;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+
+import org.apache.commons.io.IOUtils;
 
 public class DocumentTestUtils {
     private static final int BYTE_ORDER_MARK_CHAR = 0xFEFF;
@@ -42,4 +45,12 @@ public class DocumentTestUtils {
         }
         return content;
     }
+    
+    public static byte[] readBytes(File file) throws IOException {
+    	FileInputStream in = new FileInputStream(file);
+    	ByteArrayOutputStream out = new ByteArrayOutputStream();
+    	IOUtils.copy(in, out);
+    	return out.toByteArray();
+    }
+    
 }
