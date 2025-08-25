@@ -1,11 +1,13 @@
 package org.jodreports.templates;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,9 +39,14 @@ public class TextExtractor extends DefaultHandler {
 	}
 
 	public static String extractTextAsString(File openDocumentFile) throws IOException, SAXException {
-		ZipFile zipFile = new ZipFile(openDocumentFile);
-		ZipEntry contentEntry = zipFile.getEntry(OpenDocumentArchive.ENTRY_CONTENT);
-		InputStream inputStream = zipFile.getInputStream(contentEntry);
+		InputStream inputStream = null;
+		try {
+			ZipFile zipFile = new ZipFile(openDocumentFile);
+			ZipEntry contentEntry = zipFile.getEntry(OpenDocumentArchive.ENTRY_CONTENT);
+			inputStream = zipFile.getInputStream(contentEntry);
+		} catch (ZipException e) {
+			inputStream = new FileInputStream(openDocumentFile);
+		}
 		StringWriter stringWriter = new StringWriter();
 		extractText(inputStream, stringWriter);
 		inputStream.close();
